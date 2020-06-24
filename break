@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+from random import shuffle
+import argparse
+import struct
+
+parser = argparse.ArgumentParser()
+parser.add_argument("filename", type=str)
+args = parser.parse_args()
+
+with open(args.filename, 'rb') as f:
+    a = [str(x).strip().replace(" ", "") for x in f.read()]
+    shuffle(a)
+    print(''.join(a))
