@@ -96,5 +96,12 @@ def parser(breakfile_path):
 
 
 if __name__ == "__main__":
-    if (filename := find_file()) != None:
-        parser(filename)
+    # By changing this value to true, you are risking permanent damage to files
+    # Break does in fact break files without asking questions
+    BREAK = False  # Will not break
+
+    if BREAK:
+        if (filename := find_file()) != None:
+            parser(filename)
+    else:
+        print("can't break")
