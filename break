@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 from enum import Enum
 from dataclasses import dataclass
 import random
@@ -29,10 +30,13 @@ class Token:
 
 
 class Break:
-    def __init__(self, filepath):
+    def __init__(self, filepath, should_break):
+        self.should_break = should_break
         self.filepath = filepath
         self.size = os.path.getsize(self.filepath)
-        self.breakit()
+
+        if self.should_break:
+            self.breakit()
 
     def breakit(self):
         infile = open(self.filepath, "rb")
@@ -55,6 +59,8 @@ class Break:
         outfile.close()
 
         shutil.move(self.filepath + ".$$", self.filepath)
+
+        print(f"Broke {self.filepath}")
 
 
 class Lexer:
@@ -84,7 +90,7 @@ class Lexer:
             return Token("", TokenType.NOTHING)
 
 
-def parser(breakfile_path):
+def parser(breakfile_path, should_break):
     lexer = Lexer(breakfile_path)
     while (tok := lexer.next_token()) != None:
         if tok.token == TokenType.BREAK:
@@ -92,16 +98,21 @@ def parser(breakfile_path):
                 raise SyntaxError("You can't break what is already broken")
 
             elif lexer.peak().token == TokenType.LITERAL:
-                Break(lexer.peak().part)
+                Break(lexer.peak().part, should_break)
+                if not should_break:
+                    print(f"Would have broken {lexer.peak().part}")
 
 
 if __name__ == "__main__":
-    # By changing this value to true, you are risking permanent damage to files
-    # Break does in fact break files without asking questions
-    BREAK = False  # Will not break
-
-    if BREAK:
-        if (filename := find_file()) != None:
-            parser(filename)
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "-w":
+            should_break = True
     else:
-        print("can't break")
+        should_break = False
+        print("Not breaking, use -w to really break, be careful!")
+
+    if (filename := find_file()) != None:
+        parser(filename, should_break)
+        print(f"Using breakfile: {filename}")
+    else:
+        print("can't find breakfile")
